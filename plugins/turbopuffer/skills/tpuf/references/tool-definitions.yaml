@@ -1,0 +1,183 @@
+# Turbopuffer MCP Tool Definitions
+# Source of truth for all MCP tools shared across plugins (Claude Code, Codex, Cursor)
+
+tools:
+  - name: list_namespaces
+    description: >
+      List turbopuffer namespaces. Optionally filter by prefix. Returns namespace IDs
+      with pagination support.
+    input_schema:
+      type: object
+      properties:
+        prefix:
+          type: string
+          description: Filter namespaces by name prefix (e.g. "prod-" to list all production namespaces)
+        page_size:
+          type: number
+          description: Number of results per page (1-1000, default 100)
+        cursor:
+          type: string
+          description: Pagination cursor from a previous response
+      required: []
+    examples:
+      - description: List all namespaces
+        input: {}
+      - description: List namespaces with prefix
+        input: { prefix: "prod-" }
+
+  - name: describe_namespace
+    description: >
+      Get detailed information about a namespace including its schema (attribute names,
+      types, indexes) and metadata (row count, size, creation date, index status).
+      Always call this before querying a namespace you haven't seen before.
+    input_schema:
+      type: object
+      properties:
+        namespace:
+          type: string
+          description: The namespace name
+      required: [namespace]
+    examples:
+      - description: Describe a namespace
+        input: { namespace: "my-documents" }
+
+  - name: query
+    description: >
+      Query documents in a turbopuffer namespace. Supports vector search (ANN/kNN),
+      full-text search (BM25), attribute ordering, and filtering. Use describe_namespace
+      first to discover available attributes.
+    input_schema:
+      type: object
+      properties:
+        namespace:
+          type: string
+          description: The namespace to query
+        rank_by:
+          description: >
+            How to rank results. Examples:
+            - Vector ANN: ["vector", "ANN", [0.1, 0.2, 0.3]]
+            - BM25 FTS: ["content", "BM25", "search query"]
+            - Attribute order: ["timestamp", "desc"]
+            - Weighted: ["Sum", [["Product", 3, ["title", "BM25", "q"]], ["body", "BM25", "q"]]]
+        filters:
+          description: >
+            Filter conditions using tuple syntax. Examples:
+            - Simple: ["status", "Eq", "active"]
+            - Combined: ["And", [["status", "Eq", "active"], ["score", "Gte", 0.5]]]
+            - Null check: ["name", "NotEq", null]
+        limit:
+          type: number
+          description: Maximum number of results to return (default 10)
+        include_attributes:
+          description: >
+            Which attributes to include in results. Array of attribute names (e.g.
+            ["title", "content"]) or true for all attributes.
+      required: [namespace, rank_by]
+    examples:
+      - description: Vector search with filter
+        input:
+          namespace: "articles"
+          rank_by: ["vector", "ANN", [0.1, 0.2, 0.3]]
+          limit: 10
+          filters: ["category", "Eq", "tech"]
+          include_attributes: ["title", "summary"]
+      - description: Full-text search
+        input:
+          namespace: "articles"
+          rank_by: ["content", "BM25", "machine learning"]
+          limit: 5
+          include_attributes: ["title", "content"]
+      - description: Order by attribute with filter
+        input:
+          namespace: "events"
+          rank_by: ["created_at", "desc"]
+          limit: 20
+          filters: ["status", "Eq", "active"]
+
+  - name: write
+    description: >
+      Write documents to a turbopuffer namespace. Supports upserting new documents,
+      deleting by ID, and deleting by filter. Namespaces are implicitly created on
+      first write. The distance_metric must be set on the first write if using vectors.
+    input_schema:
+      type: object
+      properties:
+        namespace:
+          type: string
+          description: The namespace to write to
+        upsert_rows:
+          type: array
+          description: >
+            Array of document objects to upsert. Each must have an "id" field.
+            Example: [{"id": 1, "vector": [0.1, 0.2], "name": "foo"}]
+        deletes:
+          type: array
+          description: Array of document IDs to delete
+        delete_by_filter:
+          description: >
+            Filter expression to delete matching documents.
+            Example: ["status", "Eq", "expired"]
+        distance_metric:
+          type: string
+          enum: [cosine_distance, euclidean_squared]
+          description: >
+            Vector distance metric. Required on first write if using vectors.
+            Cannot be changed after first write.
+        schema:
+          type: object
+          description: >
+            Schema configuration for attributes. Use to enable full-text search,
+            set vector types, or disable filtering.
+            Example: {"text": {"type": "string", "full_text_search": true}}
+      required: [namespace]
+    examples:
+      - description: Upsert documents with vectors
+        input:
+          namespace: "my-docs"
+          upsert_rows:
+            - { id: 1, vector: [0.1, 0.2], title: "Hello" }
+            - { id: 2, vector: [0.3, 0.4], title: "World" }
+          distance_metric: "cosine_distance"
+      - description: Delete by ID
+        input:
+          namespace: "my-docs"
+          deletes: [1, 2, 3]
+      - description: Delete by filter
+        input:
+          namespace: "my-docs"
+          delete_by_filter: ["status", "Eq", "expired"]
+
+  - name: delete_namespace
+    description: >
+      Permanently delete an entire namespace and all its data. This action cannot
+      be undone. The confirm parameter must be set to true.
+    input_schema:
+      type: object
+      properties:
+        namespace:
+          type: string
+          description: The namespace to delete
+        confirm:
+          type: boolean
+          description: Must be true to confirm deletion
+      required: [namespace, confirm]
+    examples:
+      - description: Delete a namespace
+        input: { namespace: "old-data", confirm: true }
+
+  - name: search_docs
+    description: >
+      Search the turbopuffer documentation. Use this to find information about
+      API features, configuration options, best practices, and troubleshooting.
+    input_schema:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Search query (e.g. "how to configure full-text search", "filter syntax")
+      required: [query]
+    examples:
+      - description: Search for filter syntax
+        input: { query: "filter operators and syntax" }
+      - description: Search for FTS setup
+        input: { query: "how to enable full-text search on an attribute" }

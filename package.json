@@ -1,0 +1,15 @@
+{
+  "name": "@turbopuffer/skills",
+  "version": "0.1.0",
+  "description": "Turbopuffer skills for AI coding agents — vector search, full-text search, hybrid search, and more",
+  "private": true,
+  "scripts": {
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.0"
+  }
+}
