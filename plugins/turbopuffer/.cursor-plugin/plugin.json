@@ -1,0 +1,20 @@
+{
+  "name": "turbopuffer",
+  "version": "0.1.0",
+  "description": "Turbopuffer vector and full-text search database integration for Cursor",
+  "author": {
+    "name": "turbopuffer",
+    "email": "support@turbopuffer.com"
+  },
+  "repository": "https://github.com/turbopuffer/skills",
+  "license": "MIT",
+  "mcpServers": {
+    "turbopuffer": {
+      "type": "http",
+      "url": "https://turbopuffer.stlmcp.com",
+      "headers": {
+        "x-turbopuffer-api-key": "${TURBOPUFFER_API_KEY}"
+      }
+    }
+  }
+}
