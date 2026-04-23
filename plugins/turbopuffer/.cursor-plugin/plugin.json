@@ -1,7 +1,7 @@
 {
   "name": "turbopuffer",
   "version": "0.1.0",
-  "description": "Turbopuffer vector and full-text search database integration for Cursor",
+  "description": "Work with turbopuffer, a serverless vector and full-text search database. Provides the `/tpuf` skill with on-demand references for querying (vector ANN, BM25, hybrid), writing, schema management, and troubleshooting. Registers a turbopuffer MCP server with `execute` (run TypeScript SDK code against your namespaces) and `search_docs` (search turbopuffer documentation).",
   "author": {
     "name": "turbopuffer",
     "email": "support@turbopuffer.com"
