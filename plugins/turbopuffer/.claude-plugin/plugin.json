@@ -1,7 +1,7 @@
 {
   "name": "turbopuffer",
   "version": "0.1.0",
-  "description": "Work with turbopuffer, a serverless vector and full-text search database. Provides the `/tpuf` skill with on-demand references for querying (vector ANN, BM25, hybrid), writing, schema management, and troubleshooting. Registers a turbopuffer MCP server with `execute` (run TypeScript SDK code against your namespaces) and `search_docs` (search turbopuffer documentation).",
+  "description": "Work with turbopuffer, a serverless vector and full-text search database. Includes guidance for querying (vector ANN, BM25, hybrid), writing, and schema management, plus an MCP server for running code against your namespaces and searching turbopuffer documentation.",
   "author": {
     "name": "turbopuffer",
     "email": "support@turbopuffer.com"
