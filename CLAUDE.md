@@ -1,4 +1,4 @@
-# Turbopuffer Skills
+# turbopuffer Skills
 
 Skills and plugins for AI coding agents working with turbopuffer — a serverless vector and full-text search database.
 

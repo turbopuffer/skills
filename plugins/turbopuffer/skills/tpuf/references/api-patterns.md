@@ -1,4 +1,4 @@
-# Turbopuffer API Patterns
+# turbopuffer API Patterns
 
 ## Endpoints
 

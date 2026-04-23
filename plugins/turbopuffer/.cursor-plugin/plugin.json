@@ -1,7 +1,7 @@
 {
   "name": "turbopuffer",
   "version": "0.1.0",
-  "description": "Turbopuffer vector and full-text search database integration for Cursor",
+  "description": "Work with turbopuffer, a serverless vector and full-text search database. Includes guidance for querying (vector ANN, BM25, hybrid), writing, and schema management, plus an MCP server for running code against your namespaces and searching turbopuffer documentation.",
   "author": {
     "name": "turbopuffer",
     "email": "support@turbopuffer.com"

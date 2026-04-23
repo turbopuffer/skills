@@ -1,4 +1,4 @@
-# Common Mistakes When Using Turbopuffer
+# Common Mistakes When Using turbopuffer
 
 ## 1. Not Checking Schema Before Querying
 

@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "turbopuffer-skills",
-  "description": "Turbopuffer agent skills for Claude Code",
+  "description": "turbopuffer agent skills for Claude Code",
   "owner": {
     "name": "Kuba Rogut",
     "email": "kuba@turbopuffer.com"
@@ -10,7 +10,7 @@
     {
       "name": "turbopuffer",
       "source": "./plugins/turbopuffer",
-      "description": "Turbopuffer vector and full-text search database integration — querying, writing, schema management, bulk ingestion, and troubleshooting.",
+      "description": "turbopuffer vector and full-text search database integration — querying, writing, schema management, bulk ingestion, and troubleshooting.",
       "author": {
         "name": "turbopuffer"
       },

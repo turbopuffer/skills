@@ -18,7 +18,7 @@
 ### TypeScript
 
 ```typescript
-import { Turbopuffer } from "@turbopuffer/turbopuffer";
+import { turbopuffer } from "@turbopuffer/turbopuffer";
 
 const tpuf = new Turbopuffer({ apiKey: process.env.TURBOPUFFER_API_KEY! });
 const ns = tpuf.namespace("example");
