@@ -1,10 +1,10 @@
-# Turbopuffer SDK Examples
+# turbopuffer SDK Examples
 
 ## Client Initialization
 
 ### TypeScript
 ```typescript
-import { Turbopuffer } from "@turbopuffer/turbopuffer";
+import { turbopuffer } from "@turbopuffer/turbopuffer";
 
 const tpuf = new Turbopuffer({
   apiKey: process.env.TURBOPUFFER_API_KEY,
@@ -304,7 +304,7 @@ for namespace in tpuf.namespaces():
 ### TypeScript (Vitest)
 ```typescript
 import { expect, test, beforeEach, afterEach, describe } from "vitest";
-import { NotFoundError, Turbopuffer } from "@turbopuffer/turbopuffer";
+import { NotFoundError, turbopuffer } from "@turbopuffer/turbopuffer";
 import * as crypto from "crypto";
 
 const tpuf = new Turbopuffer({ region: "gcp-us-central1" });

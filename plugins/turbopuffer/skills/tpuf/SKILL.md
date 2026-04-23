@@ -8,7 +8,7 @@ description: >
 allowed-tools: mcp__turbopuffer__search_docs
 ---
 
-# Turbopuffer
+# turbopuffer
 
 ## Preflight
 

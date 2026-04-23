@@ -1,4 +1,4 @@
-# Turbopuffer — Claude Code Plugin
+# turbopuffer — Claude Code Plugin
 
 Use `/tpuf` for all turbopuffer operations. The skill routes to the right reference based on what the user wants to do.
 

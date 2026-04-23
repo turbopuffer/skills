@@ -1,6 +1,6 @@
-# Turbopuffer Overview
+# turbopuffer Overview
 
-Turbopuffer is a serverless vector and full-text search database built from first principles on object storage. It's fast, 10x cheaper than alternatives, and extremely scalable.
+turbopuffer is a serverless vector and full-text search database built from first principles on object storage. It's fast, 10x cheaper than alternatives, and extremely scalable.
 
 ## Core Architecture
 
@@ -62,7 +62,7 @@ Set on first write, **cannot be changed** after:
 
 ## Regions
 
-Turbopuffer runs in multiple cloud regions. Specify via SDK `region` parameter:
+turbopuffer runs in multiple cloud regions. Specify via SDK `region` parameter:
 - `aws-us-east-1`, `aws-us-west-2`, `aws-eu-west-1`, etc.
 - `gcp-us-central1`, `gcp-us-east4`, etc.
 

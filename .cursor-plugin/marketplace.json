@@ -1,6 +1,6 @@
 {
   "name": "turbopuffer-skills",
-  "description": "Turbopuffer agent skills for Cursor",
+  "description": "turbopuffer agent skills for Cursor",
   "owner": {
     "name": "Kuba Rogut",
     "email": "kuba@turbopuffer.com"
@@ -9,7 +9,7 @@
     {
       "name": "turbopuffer",
       "source": "./plugins/turbopuffer",
-      "description": "Turbopuffer vector and full-text search database integration — querying, writing, schema management, bulk ingestion, and troubleshooting.",
+      "description": "turbopuffer vector and full-text search database integration — querying, writing, schema management, bulk ingestion, and troubleshooting.",
       "author": {
         "name": "turbopuffer"
       },
