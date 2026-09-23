@@ -34,7 +34,6 @@ One orchestration skill (`tpuf`) with a routing table in SKILL.md. The skill mat
 - **Router pattern**: SKILL.md routes requests to the right reference. References are loaded on demand, not all at once.
 - **Topic files are hand-maintained**: no generation pipeline. Each reference is a curated guide for one topic.
 - **Gotchas encode LLM errors**: the "Gotchas" section in SKILL.md captures mistakes the LLM commonly makes.
-- **MCP server**: the plugin registers a turbopuffer MCP server that provides `execute` and `search_docs` tools.
 - **Dual-platform manifests**: `.claude-plugin/` and `.cursor-plugin/` contain identical plugin.json — keep them in sync.
 
 ## Authoring Guidance
@@ -42,6 +41,7 @@ One orchestration skill (`tpuf`) with a routing table in SKILL.md. The skill mat
 - Keep references focused on one topic each
 - Include concrete code examples in references
 - Update gotchas when evals reveal new LLM failure modes
+- Verify API details against https://turbopuffer.com/llms.txt before adding them — the API evolves quickly
 - Don't put multiple topics in one reference file
 - Don't add frontmatter to reference files (only SKILL.md has frontmatter)
 - Bump version in both `.claude-plugin/plugin.json` and `.cursor-plugin/plugin.json` when updating skills

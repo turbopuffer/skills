@@ -1,102 +1,54 @@
-# Query — Search and Retrieve Data
-
-Always check schema first:
-```typescript
-async function run(client) {
-  const ns = client.namespace("NAMESPACE_NAME");
-  console.log(JSON.stringify(await ns.schema(), null, 2));
-}
-```
-
-## Vector search (ANN)
+# Query
 
 ```typescript
-async function run(client) {
-  const ns = client.namespace("articles");
-  const result = await ns.query({
-    rank_by: ["vector", "ANN", [0.1, 0.2, 0.3]],
-    limit: 10,
-    include_attributes: ["title", "$dist" "content"],
-  });
-  for (const row of result.rows!) {
-    console.log(`ID: ${row.id}, Dist: ${row.$dist}, Title: ${(row.title as string)?.substring(0, 200)}`);
-  }
-}
+// Vector
+await ns.query({ rank_by: ["vector", "ANN", v], limit: 10, filters: ["category", "Eq", "news"], include_attributes: ["title"] });
+
+// Native embeddings
+await ns.query({ rank_by: ["text", "ANN", ["Embed", "query text"]], limit: 10 });
+
+// Exact kNN — requires filters
+await ns.query({ rank_by: ["vector", "kNN", v], filters: ["user_id", "Eq", 42], limit: 10 });
+
+// BM25 (weighted across fields)
+await ns.query({ rank_by: ["Sum", [["Product", 2, ["title", "BM25", q]], ["content", "BM25", q]]], limit: 10 });
+
+// Order by attribute / lookup
+await ns.query({ rank_by: ["created_at", "desc"], filters: ["status", "Eq", "active"], limit: 20 });
 ```
 
-## Full-text search (BM25)
+`$dist` is returned on every row (distance for vectors, score for BM25).
 
-Requires attribute with `full_text_search: true`.
+## Hybrid
 
 ```typescript
-async function run(client) {
-  const ns = client.namespace("articles");
-  const result = await ns.query({
-    rank_by: ["content", "BM25", "search terms"],
-    limit: 10,
-    include_attributes: ["title", "content"],
-  });
-  for (const row of result.rows!) {
-    console.log(`ID: ${row.id}, Title: ${(row.title as string)?.substring(0, 200)}`);
-  }
-}
+const res = await ns.multiQuery({
+  queries: [
+    { rank_by: ["vector", "ANN", v], limit: 20 },
+    { rank_by: ["content", "BM25", q], limit: 20 },
+  ],
+  rerank_by: ["RRF"], // fused list in res.results[0].rows
+});
 ```
 
-## Weighted multi-field BM25
+## Filters
+
+`["attr", "Op", value]`, combined with `And` / `Or` / `Not`. Ops: `Eq`, `NotEq`, `In`, `NotIn`, `Lt(e)`, `Gt(e)`, `Contains`, `ContainsAny`, `Glob`, `IGlob`, `Regex`, `Fuzzy`, `ContainsAllTokens`, `ContainsTokenSequence`. `["x", "Eq", null]` matches missing values.
+
+## Aggregations
 
 ```typescript
-await ns.query({
-  rank_by: ["Sum", [
-    ["Product", 3, ["title", "BM25", "query"]],
-    ["Product", 2, ["tags", "BM25", "query"]],
-    ["content", "BM25", "query"],
-  ]],
-  limit: 10,
-})
+const r = await ns.query({ aggregate_by: { n: ["Count"], total: ["Sum", "price"] }, group_by: ["category"] });
+// r.aggregation_groups (or r.aggregations without group_by)
 ```
 
-## Order by attribute
+Aggregations are expensive — keep them off hot paths on large namespaces.
 
-```typescript
-await ns.query({ rank_by: ["created_at", "desc"], limit: 20, filters: ["status", "Eq", "active"] })
-```
+## Pagination
 
-## Hybrid search (vector + BM25)
+- Scroll: filter `["id", "NotIn", seenIds]`.
+- Full scan: `rank_by: ["id", "asc"]` and advance `["id", "Gt", lastId]` (max 10,000 per page).
 
-Use multi-query to run vector and BM25 searches in parallel, then fuse results client-side (e.g., Reciprocal Rank Fusion). Use the `search_docs` tool to look up "hybrid search" for the full RRF implementation example.
+## Consistency
 
-```typescript
-async function run(client) {
-  const ns = client.namespace("articles");
-  const result = await ns.query({
-    queries: [
-      { rank_by: ["vector", "ANN", [0.1, 0.2]], limit: 20, include_attributes: ["title"] },
-      { rank_by: ["content", "BM25", "search query"], limit: 20, include_attributes: ["title"] },
-    ],
-  });
-  // result.results[0].rows = vector results
-  // result.results[1].rows = BM25 results
-  // Fuse with RRF — use search_docs for the full example
-  console.log(JSON.stringify(result, null, 2).substring(0, 2000));
-}
-```
-
-## Filter syntax
-
-Only `filterable: true` attributes can be filtered.
-
-| Pattern | Example |
-|---------|---------|
-| Exact match | `["status", "Eq", "active"]` |
-| Combined | `["And", [["category", "Eq", "tech"], ["score", "Gte", 0.5]]]` |
-| Array contains | `["tags", "Contains", "python"]` |
-| Prefix glob | `["name", "Glob", "tpuf*"]` |
-| In set | `["id", "In", [1, 2, 3]]` |
-| Null check | `["name", "NotEq", null]` |
-
-## Validation
-
-If results look wrong:
-- Empty results? Check: is the attribute filterable? Is FTS enabled on the right field? Are vector dimensions correct?
-- Slow? First query to cold namespace is ~300ms — subsequent queries hit cache (~8ms).
-- Use `search_docs` tool to look up advanced rank_by patterns (Saturate, Decay, etc.).
+Strong by default. `consistency: { level: "eventual" }` is faster, but can lag after heavy writes.

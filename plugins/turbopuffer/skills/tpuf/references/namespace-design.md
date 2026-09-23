@@ -1,59 +1,31 @@
-# Namespace Design — Sizing, Sharding, Naming
+# Namespace Design
 
-## Key limits per namespace
+Make namespaces as small as possible without routinely querying more than one at a time. Namespaces are unlimited and free to create.
 
-| Metric | Limit |
-|--------|-------|
-| Max documents | 500M |
-| Max size | 2 TB |
-| Max write throughput | 10k writes/s @ 32 MB/s |
-| Max concurrent queries | 16 (more with read replicas) |
-| Max attributes | 256 |
+| Situation | Do |
+|---|---|
+| Tenants never search each other's data | One namespace per tenant |
+| Different schemas / doc types | Separate namespaces |
+| Shared corpus with per-user access | ACL arrays on docs + filter (below) |
+| One corpus > 1 TB / 500M docs | `references/sharding.md` |
+| Large namespace, high sustained QPS | `references/pinning.md` |
 
-## When to use one namespace
+## Permissions
 
-Use a single namespace when:
-- Data shares the same schema and vector dimensions
-- Total size < 500M docs / 2TB
-- Query throughput fits within limits (16 concurrent, ~300 QPS at 50ms latency)
-- All queries filter within this dataset
+There's no built-in row-level access control. Store who can read each doc and filter on it:
 
-## When to shard across namespaces
+```typescript
+filters: ["Or", [["groups", "ContainsAny", user.groups], ["user_ids", "Contains", user.id], ["is_public", "Eq", true]]]
+```
 
-**By tenant/user** — most common:
-- Each user/tenant gets their own namespace: `user-{userId}`
-- Natural isolation, simple access control, independent scaling
-- Best when users don't need to search across each other's data
+Mark public docs with a boolean. Don't rely on empty arrays. Declare ID arrays as `[]uuid`.
 
-**By data type/schema**:
-- Different document types with different schemas → separate namespaces
-- e.g., `articles`, `users`, `products`
+## Key limits
 
-**By size** — when hitting per-namespace limits:
-- Shard by ID: `docs-shard-{id % N}`
-- Requires application-level scatter-gather for queries
-
-**By performance** — when throughput matters:
-- Each namespace gets its own concurrent query slots
-- 10 namespaces × 16 concurrent = 160 concurrent queries
-- Writes process at 1 batch/s per namespace — more namespaces = more write throughput
-
-## Naming conventions
+- 500M docs / 1 TB per shard, up to 256 shards
+- 16 concurrent queries per unpinned namespace
+- 10k writes/s per namespace
+- 512 MB per write
+- 8 vector columns and 1,024 attributes per namespace
 
 Names must match `[A-Za-z0-9-_.]{1,128}`.
-
-Recommended patterns:
-- `{tenant}-{type}` — `acme-corp-documents`
-- `{type}-v{version}` — `articles-v2` (for embedding model rollouts)
-- `test-{random}` — for test namespaces (always clean up)
-
-## Namespace lifecycle
-
-- **Created implicitly** on first write — no create endpoint
-- **Deleted explicitly** with `ns.deleteAll()` — permanent, cannot be undone
-- **Cannot rename** — create new namespace, migrate data, delete old one
-- **Schema and distance metric are immutable** after first write — plan ahead
-
-## Concurrent indexing
-
-Multiple namespaces can be indexed concurrently, but there are cluster-level limits. If you're creating many namespaces simultaneously and writing to all of them, indexing may bottleneck. Spread writes over time or prioritize namespaces.
