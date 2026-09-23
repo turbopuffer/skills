@@ -1,20 +1,11 @@
 {
   "name": "turbopuffer",
-  "version": "0.1.0",
-  "description": "Work with turbopuffer, a serverless vector and full-text search database. Includes guidance for querying (vector ANN, BM25, hybrid), writing, and schema management, plus an MCP server for running code against your namespaces and searching turbopuffer documentation.",
+  "version": "0.2.0",
+  "description": "Work with turbopuffer, a serverless vector and full-text search database. Includes guidance for querying (vector ANN, BM25, hybrid), writing, schema management, native embeddings, sharding, pinning, branching, bulk ingestion, and troubleshooting.",
   "author": {
     "name": "turbopuffer",
     "email": "support@turbopuffer.com"
   },
   "repository": "https://github.com/turbopuffer/skills",
-  "license": "MIT",
-  "mcpServers": {
-    "turbopuffer": {
-      "type": "http",
-      "url": "https://turbopuffer.stlmcp.com",
-      "headers": {
-        "x-turbopuffer-api-key": "${TURBOPUFFER_API_KEY}"
-      }
-    }
-  }
+  "license": "MIT"
 }

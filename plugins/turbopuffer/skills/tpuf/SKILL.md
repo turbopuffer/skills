@@ -1,87 +1,50 @@
 ---
 description: >
   Use when the user wants to work with turbopuffer — a serverless vector and
-  full-text search database. Covers setup, querying (vector ANN, BM25, hybrid),
-  writing data, exploring namespaces, and diagnosing issues. Trigger on any
-  mention of turbopuffer, vector search, namespace, embeddings, BM25, or
-  semantic search in the context of turbopuffer.
-allowed-tools: mcp__turbopuffer__search_docs
+  full-text search database. Covers setup, querying (vector, BM25, hybrid),
+  writing, schema, native embeddings, sharding, pinning, branching, and
+  troubleshooting. Trigger on any mention of turbopuffer or tpuf.
 ---
 
 # turbopuffer
 
-## Preflight
+## Before you start
 
-Before any operation, verify:
-1. **MCP tools available** — check that `execute` and `search_docs` tools exist. If not:
-   > Set your API key and restart Claude Code:
-   > ```
-   > echo 'export TURBOPUFFER_API_KEY=tpuf_...' >> ~/.zshrc && source ~/.zshrc
-   > ```
-   > Get your key at https://turbopuffer.com/dashboard
-2. **API key valid** — run a quick test:
-   ```typescript
-   async function run(client) {
-     for await (const ns of client.namespaces()) { console.log(ns.id); break; }
-     console.log("Connected.");
-   }
-   ```
-3. **Namespace exists** (if user provides one) — verify before querying/writing.
+- Needs `TURBOPUFFER_API_KEY` (from https://turbopuffer.com/dashboard) and a region (`TURBOPUFFER_REGION`, e.g. `gcp-us-central1`). Never print the key.
+- Inspect live data with `curl https://$TURBOPUFFER_REGION.turbopuffer.com/v1/namespaces/{ns}/metadata -H "Authorization: Bearer $TURBOPUFFER_API_KEY"`.
+- Write app code with the user's SDK. Examples here are TypeScript; Python is the same API in snake_case.
+- When unsure, read the docs: `https://turbopuffer.com/docs/<page>.md` (index: https://turbopuffer.com/llms.txt).
 
 ## Routing
 
-Match the user's request to a reference and load it before proceeding:
-
-| User wants to... | Load reference |
+| User wants to... | Load |
 |---|---|
-| Set up turbopuffer, install SDK, configure API key | `references/setup.md` |
-| List namespaces, inspect schema, see what data exists | `references/explore.md` |
-| Search, query, find similar, retrieve data | `references/query.md` |
-| Add, update, delete data, configure schema | `references/write.md` |
-| Fix 429 errors, rate limiting, concurrency issues | `references/troubleshoot-429.md` |
-| Load large datasets, bulk ingest, monitor progress | `references/bulk-ingestion.md` |
-| Design namespaces, plan sharding, sizing | `references/namespace-design.md` |
-| Diagnose slow/empty/wrong queries, optimize schema, fix latency | `references/doctor.md` |
-| Stuck indexing, unindexed backlog, indexing throttling | `references/doctor-indexing.md` |
+| Install SDK, first integration | `references/setup.md` |
+| Search: vector, BM25, hybrid, filters, aggregations | `references/query.md` |
+| Configure full-text search | `references/fts.md` |
+| Upsert, patch, delete, schema changes | `references/write.md` |
+| Let turbopuffer embed text | `references/embedding.md` |
+| Namespace layout, multi-tenancy, permissions, limits | `references/namespace-design.md` |
+| One namespace > 1TB / 500M docs | `references/sharding.md` |
+| High sustained QPS, always-warm cache | `references/pinning.md` |
+| Clone, copy, back up a namespace | `references/branching.md` |
+| Bulk load, indexing backlog | `references/ingestion.md` |
+| 429 errors | `references/troubleshoot-429.md` |
+| Slow, empty, or wrong results | `references/doctor.md` |
 
-For multi-step requests, load references in sequence as needed.
+## Rules
 
-## Composition patterns
-
-- **First integration**: setup → write (seed example data) → query (test it works)
-- **Debug 429s**: troubleshoot-429 (identify cause) → doctor (check cache/latency) → namespace-design (consider sharding)
-- **Debug slow/broken queries**: doctor (diagnose) → query (test optimized version)
-- **Bulk data load**: namespace-design (plan sharding) → bulk-ingestion (load data) → doctor-indexing (monitor progress)
-- **Schema optimization**: explore (inspect) → doctor (audit schema) → write (update schema)
-- **New search feature**: explore (discover attributes) → query (build search) → write (add FTS if needed)
-
-## Execution rules
-
-1. **Always check schema before querying** — never guess attribute names.
-2. **Confirm destructive actions** — for `delete_by_filter` or `ns.deleteAll()`, confirm intent and show what will be affected before executing.
-3. **After writes, verify** — query back a sample to confirm the write succeeded.
-4. **Batch writes** — never send one document at a time. Always batch.
-5. **Use `limit`, not `top_k`** — `top_k` is deprecated.
-
-## User-only commands (NEVER execute without explicit user confirmation)
-
-- `ns.deleteAll()` — permanently deletes an entire namespace and all its data
-- `delete_by_filter` on broad filters — could delete thousands of rows unexpectedly
-
-## Response format
-
-Always structure responses as:
-1. **What was done** — action and scope (e.g., "Queried namespace `prod-articles` with BM25 search")
-2. **The result** — data, metrics, key output
-3. **What to do next** — suggested follow-up or confirmation that the task is complete
+1. Check the schema (`ns.metadata()`) before querying — don't guess attribute names.
+2. Batch writes; never one document per request.
+3. Confirm before `deleteAll()`, `delete_by_filter`, `patch_by_filter`, or enabling pinning (billing).
+4. Use `limit`, not `top_k`.
 
 ## Gotchas
 
-- `distance_metric` is set on first write and **cannot be changed**. If wrong, create a new namespace.
-- Namespaces are implicitly created on first write — no "create namespace" endpoint.
-- First query to a cold namespace is ~300ms (object storage). Subsequent: ~8ms (cache).
-- Always truncate large MCP output: `.substring(0, 800)`. Cast before string methods: `row.field as string`.
-- Only `filterable: true` attributes can appear in filters.
-- Only prefix globs are efficient: `"tpuf*"` is fast, `"*tpuf*"` scans everything.
-- `include_attributes: true` returns everything — prefer listing specific fields.
-- Patches re-write the full row — avoid patching rows with large attributes frequently.
+- Namespaces are created on first write. `distance_metric`, vector dims/types, and `sharding` are fixed after that.
+- The client needs a region. TS import: `import { Turbopuffer } from "@turbopuffer/turbopuffer"`.
+- `full_text_search`, `regex`, `glob`, `fuzzy` default `filterable: false` — set `filterable: true` to also filter on them.
+- Multi-query is `ns.multiQuery({ queries, rerank_by: ["RRF"] })`, not `ns.query({ queries })`.
+- `aggregate_by` is an object: `{ n: ["Count"] }`.
+- `patch_by_filter` is `{ filters, patch }`. Vectors can't be patched.
+- Cold queries on big namespaces take ~0.5–1s; call `ns.hintCacheWarm()` before latency-sensitive sessions.
