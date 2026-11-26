@@ -14,7 +14,8 @@
       "author": {
         "name": "turbopuffer"
       },
-      "category": "productivity"
+      "category": "productivity",
+      "skills": ["./skills/tpuf"]
     }
   ]
 }
