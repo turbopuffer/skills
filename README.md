@@ -17,6 +17,12 @@ Works with **Claude Code** and **Cursor**.
 
 Browse the [Cursor Marketplace](https://cursor.com/marketplace) and search for "turbopuffer", or use `/add-plugin` in chat.
 
+### Agent Skills CLI (npx skills)
+
+```bash
+npx skills add turbopuffer/skills
+```
+
 ### Configuration
 
 The skill calls the turbopuffer API with your credentials. Get a key at [turbopuffer.com/dashboard](https://turbopuffer.com/dashboard) and pick a [region](https://turbopuffer.com/docs/regions).

@@ -1,4 +1,5 @@
 ---
+name: tpuf
 description: >
   Use when the user wants to work with turbopuffer — a serverless vector and
   full-text search database. Covers setup, querying (vector, BM25, hybrid),

@@ -1,6 +1,6 @@
 {
   "name": "turbopuffer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Work with turbopuffer, a serverless vector and full-text search database. Includes guidance for querying (vector ANN, BM25, hybrid), writing, schema management, native embeddings, sharding, pinning, branching, bulk ingestion, and troubleshooting.",
   "author": {
     "name": "turbopuffer",
